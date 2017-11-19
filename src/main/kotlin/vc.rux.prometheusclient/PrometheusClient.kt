@@ -9,6 +9,7 @@ import okhttp3.Response
 import org.slf4j.LoggerFactory
 import vc.rux.prometheusclient.containers.InstantQueryResult
 import vc.rux.prometheusclient.containers.InstantQueryVectorResult
+import vc.rux.prometheusclient.containers.PrometheusMetricMap
 import java.util.*
 
 class PrometheusClient(
@@ -18,7 +19,7 @@ class PrometheusClient(
 ) {
     val baseUrl = "http://$host/api/v1/"
 
-    fun instant(query: String, time: Date? = null, timeout: Long? = null): List<InstantQueryResult> {
+    fun <METRIC> instant(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryResult> {
         val response = queryInstant(
             "query" to query,
             "time" to time?.time?.div(1000.0)?.toString(),
@@ -27,7 +28,7 @@ class PrometheusClient(
         val tree = objectReader.readTree(response.body()?.byteStream()).get("data")
 
         return when(tree.get("resultType").textValue()) {
-            "vector" -> parseVector(tree.get("result"))
+            "vector" -> parseVector(tree.get("result"), metricMapClass)
 //            "matrix" -> NotImplementedError
 //            "scalar" ->
 //            "string" -> NotImplementedError("")
@@ -35,9 +36,9 @@ class PrometheusClient(
         }
     }
 
-    private fun parseVector(vector: JsonNode): List<InstantQueryVectorResult> =
-        vector.map(::InstantQueryVectorResult)
-    
+    private fun <METRIC> parseVector(vector: JsonNode, metricType: Class<METRIC>): List<InstantQueryVectorResult<METRIC>> =
+        vector.map { node -> InstantQueryVectorResult(node, metricType) }
+
 
     private fun queryInstant(vararg params: Pair<String, String?>): Response {
         val url = HttpUrl.Builder()

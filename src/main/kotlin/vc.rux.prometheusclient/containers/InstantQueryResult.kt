@@ -1,17 +1,16 @@
 package vc.rux.prometheusclient.containers
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.*
 
 sealed class InstantQueryResult 
 
-class InstantQueryVectorResult internal constructor(
-    node: JsonNode
+class InstantQueryVectorResult<METRIC> internal constructor(
+    node: JsonNode, metricType: Class<METRIC>
 ) : InstantQueryResult() {
-    val metric = PrometheusMetricMap().also {
-        for ((key, jsonNode) in node.with("metric").fields())
-            it.put(key, jsonNode.textValue())
-    }
+
+    val metric = ObjectMapper().treeToValue(node.with("metric"), metricType)
 
     val timestamp = Date(node.withArray("value").get(0).asLong())
     
