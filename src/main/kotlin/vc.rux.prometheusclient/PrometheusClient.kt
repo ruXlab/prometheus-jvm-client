@@ -17,9 +17,12 @@ class PrometheusClient(
     private val port: Int = 9090,
     private val httpClient: OkHttpClient = OkHttpClient()
 ) {
-    val baseUrl = "http://$host/api/v1/"
+    private val baseUrl = "http://$host/api/v1/"
 
-    fun <METRIC> instant(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryResult> {
+    fun <METRIC> instantVector(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryVectorResult<METRIC>> =
+        instant(query, time, timeout, metricMapClass) as List<InstantQueryVectorResult<METRIC>>
+
+    fun <METRIC> instant(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryResult<METRIC>> {
         val response = queryInstant(
             "query" to query,
             "time" to time?.time?.div(1000.0)?.toString(),

@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.*
 
-sealed class InstantQueryResult 
+sealed class InstantQueryResult<METRIC>
 
 class InstantQueryVectorResult<METRIC> internal constructor(
     node: JsonNode, metricType: Class<METRIC>
-) : InstantQueryResult() {
+) : InstantQueryResult<METRIC>() {
 
     val metric = ObjectMapper().treeToValue(node.with("metric"), metricType)
 
