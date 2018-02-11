@@ -11,6 +11,7 @@ import vc.rux.prometheusclient.containers.InstantQueryResult
 import vc.rux.prometheusclient.containers.InstantQueryVectorResult
 import vc.rux.prometheusclient.containers.PrometheusMetricMap
 import vc.rux.prometheusclient.containers.RangeQueryVectorResult
+import vc.rux.prometheusclient.exceptions.PrometheusException
 import java.util.*
 
 class PrometheusClient(
@@ -32,7 +33,12 @@ class PrometheusClient(
             "time" to time?.time?.div(1000.0)?.toString(),
             "timeout" to timeout?.toString()
         )
-        val tree = objectReader.readTree(response.body()?.byteStream()).get("data")
+
+        val root = objectReader.readTree(response.body()?.byteStream())
+        if (root.get("status").asText() ==  "error")
+            throw PrometheusException(root.get("errorType").asText(), root.get("error").asText())
+
+        val tree = root.get("data")
 
         return when(tree.get("resultType").textValue()) {
             "vector" -> parseVector(tree.get("result"), metricMapClass)
