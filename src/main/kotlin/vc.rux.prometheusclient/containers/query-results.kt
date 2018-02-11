@@ -17,7 +17,7 @@ class InstantQueryVectorResult<METRIC> internal constructor(
 
     val metric = objectMapper.treeToValue(node.with("metric"), metricType)
 
-    val timestamp = Date(node.withArray("value").get(0).asLong())
+    val timestamp = Date(node.withArray("value").get(0).asDouble().times(1000).toLong())
     
     val value = node.withArray("value").get(1).asDouble()
 
@@ -33,7 +33,7 @@ class RangeQueryVectorResult<METRIC> internal constructor(
     val metric = objectMapper.treeToValue(node.with("metric"), metricType)
 
     val values = node.withArray("values")
-            .map { TimestampValuePair(Date(it.get(0).asLong()), it.get(1).asDouble()) }
+            .map { TimestampValuePair(Date(it.get(0).asDouble().times(1000).toLong()), it.get(1).asDouble()) }
 
     override fun toString(): String {
         return "RangeQueryVectorResult(metric=$metric, values=$values)"
