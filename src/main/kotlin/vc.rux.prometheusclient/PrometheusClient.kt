@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import vc.rux.prometheusclient.containers.InstantQueryResult
 import vc.rux.prometheusclient.containers.InstantQueryVectorResult
 import vc.rux.prometheusclient.containers.PrometheusMetricMap
+import vc.rux.prometheusclient.containers.RangeQueryVectorResult
 import java.util.*
 
 class PrometheusClient(
@@ -22,6 +23,9 @@ class PrometheusClient(
     fun <METRIC> instantVector(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryVectorResult<METRIC>> =
         instant(query, time, timeout, metricMapClass) as List<InstantQueryVectorResult<METRIC>>
 
+    fun <METRIC> rangeVector(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<RangeQueryVectorResult<METRIC>> =
+            instant(query, time, timeout, metricMapClass) as List<RangeQueryVectorResult<METRIC>>
+
     fun <METRIC> instant(query: String, time: Date? = null, timeout: Long? = null, metricMapClass: Class<METRIC>): List<InstantQueryResult<METRIC>> {
         val response = queryInstant(
             "query" to query,
@@ -32,12 +36,16 @@ class PrometheusClient(
 
         return when(tree.get("resultType").textValue()) {
             "vector" -> parseVector(tree.get("result"), metricMapClass)
-//            "matrix" -> NotImplementedError
+            "matrix" -> parseMatrix(tree.get("result"), metricMapClass)
 //            "scalar" ->
 //            "string" -> NotImplementedError("")
             else -> throw NotImplementedError("Given result type ${tree.get("resultType").textValue()} is not supported")
         }
     }
+
+    private fun <METRIC> parseMatrix(matrix: JsonNode, metricMapClass: Class<METRIC>): List<InstantQueryResult<METRIC>> =
+        matrix.map { node -> RangeQueryVectorResult(node, metricMapClass) }
+
 
     private fun <METRIC> parseVector(vector: JsonNode, metricType: Class<METRIC>): List<InstantQueryVectorResult<METRIC>> =
         vector.map { node -> InstantQueryVectorResult(node, metricType) }
