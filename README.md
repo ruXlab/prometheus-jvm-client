@@ -11,8 +11,25 @@ write easy-to-use and **type-safe** client
 * Allows to construct client
 * Instant vector queries (1 value for multiple metrics)
 * Range vector queries (time series data for multiple metrics)
-* Metrics are fully typed, user can supply it's own schema
+* Metrics are statically typed, user can supply it's own schema
 
+
+### How to add it to my project?
+
+Add following lines to your gradle build file:
+
+```
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+	dependencies {
+	        implementation 'com.github.ruXlab:prometheus-jvm-client:-SNAPSHOT'
+	}
+```
+
+Check [JitPack.io project's page](https://jitpack.io/#ruXlab/prometheus-jvm-client) for more information and example
+configurations for other build systems such as maven, sbt and other
 
 
 ### FAQ
@@ -23,6 +40,7 @@ write easy-to-use and **type-safe** client
 
 
 * Q: Can I use java?
+
   A: Sure, it's fully JVM compatible, thanks to kotlin
   
  
